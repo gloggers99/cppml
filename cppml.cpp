@@ -3,8 +3,12 @@
 #include <iostream>
 
 int main() {
-    html test_html {
+    std::string test = "a";
 
+    using namespace tags;
+
+    html test_html {
+        p { "hello" }
     };
 
     std::cout << std::string(test_html) << "\n";
