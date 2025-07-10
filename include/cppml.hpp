@@ -7,22 +7,25 @@
 #include <memory>
 #include <cxxabi.h>
 
-/**
- * We define children as a shortcut because the type is very long. We have to use
- * std::nullptr_t as a placeholder because std::variant is not constructable unless
- * at least one type is provided, we can use anything as the placeholder.
- */
+///
+/// We define children as a shortcut because the type is very long. We have to use
+/// std::nullptr_t as a placeholder because std::variant is not constructable unless
+/// at least one type is provided, we can use anything as the placeholder.
+///
 template <typename ...children_types>
 using children = std::vector<std::variant<std::nullptr_t, children_types...>>;
 
-/**
- * Constraint to ensure a type is convertable to a string
- */
+///
+/// Constraint to ensure a type is convertable to a string
+///
 template <typename T>
 concept is_string_convertable = requires (T t) {
     std::string(t);
 };
 
+/// Demangle a C++ type name.
+/// @param input_name Original C++ ABI given name.
+/// @return A demangled name, stripped of everything except the class name.
 constexpr std::string demangle(const char *input_name) {
     const std::unique_ptr<char, decltype(&std::free)> demangled_name_ptr {
         abi::__cxa_demangle(input_name, nullptr, nullptr, nullptr),
@@ -55,11 +58,11 @@ constexpr std::string demangle(const char *input_name) {
     return demangled_name;
 }
 
-/**
- * Virtual base class for all elements.
- * @tparam derived_type The type of the class inheriting ::element, this is used to determine the name of the element.
- * @tparam children_types Each input type must be convertable to a string, this allows for lots of flexibility.
- */
+/// 
+/// Virtual base class for all elements.
+/// @tparam derived_type The type of the class inheriting ::element, this is used to determine the name of the element.
+/// @tparam children_types Each input type must be convertable to a string, this allows for lots of flexibility.
+/// 
 template <typename derived_type, typename ...children_types>
     requires ((is_string_convertable<children_types>) && ...)
 class element {
@@ -99,10 +102,10 @@ public:
     };
 };
 
-/**
- * A shortcut to create basic elements.
- * @param __NAME The element and class name.
- */
+/// 
+/// A shortcut to create basic elements.
+/// @param __NAME The element and class name.
+/// 
 #define $basic_element(__NAME) \
     template <typename ...children_types> \
     class __NAME final : public element<__NAME<children_types...>, children_types...> { \
@@ -111,16 +114,16 @@ public:
             : element<__NAME, children_types...>(std::forward<children_types>(children_nodes)...) {} \
     }
 
-/**
- * This namespace contains all pre-defined elements.
- */
+/// 
+/// This namespace contains all pre-defined elements.
+/// 
 namespace tags {
-    /**
-     * Essentially everything that inherits ::element is a proxy type.
-     * Everything in html is node based so every element is "technically"
-     * the same, just the name is different and sometimes there are some unique cases.
-     * @tparam children_types
-     */
+    /// 
+    /// Essentially everything that inherits ::element is a proxy type.
+    /// Everything in html is node based so every element is "technically"
+    /// the same, just the name is different and sometimes there are some unique cases.
+    /// @tparam children_types
+    /// 
     $basic_element(html);
 
     $basic_element(p);
